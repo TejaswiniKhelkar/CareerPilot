@@ -2,105 +2,76 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, MapPin, Sparkles, Bookmark, CalendarDays, Briefcase, ArrowRight } from 'lucide-react'
 import { Button, Badge, Card, Input } from '../../components/ui'
+import { opportunities, typeOptions, locationOptions, sortOptions } from '../../data/opportunities'
+import { getUserOpportunityContext, matchOpportunity } from '../../services/opportunityMatcher'
 
-const opportunities = [
-  {
-    id: 'opp-001',
-    title: 'Product Analyst Intern',
-    organization: 'InsightEdge Labs',
-    type: 'Internship',
-    location: 'Remote',
-    deadline: '2026-09-30',
-    matchScore: 92,
-    skills: ['SQL', 'Tableau', 'A/B Testing', 'Analytics'],
-    matchText: 'Your background in product analytics and dashboard design closely matches this internship’s focus on conversion optimization.',
-  },
-  {
-    id: 'opp-002',
-    title: 'Business Intelligence Associate',
-    organization: 'Nexa Solutions',
-    type: 'Job',
-    location: 'Bengaluru, India',
-    deadline: '2026-10-12',
-    matchScore: 88,
-    skills: ['Python', 'Data Visualization', 'SQL', 'Stakeholder Communication'],
-    matchText: 'Strong reporting experience and stakeholder collaboration make you a solid fit for this BI role.',
-  },
-  {
-    id: 'opp-003',
-    title: 'Data Product Scholarship',
-    organization: 'FutureMetrics Academy',
-    type: 'Scholarship',
-    location: 'Online',
-    deadline: '2026-10-05',
-    matchScore: 85,
-    skills: ['Product Strategy', 'Data Storytelling', 'Resume Building'],
-    matchText: 'Your product analytics focus and leadership potential align with this advanced scholarship cohort.',
-  },
-  {
-    id: 'opp-004',
-    title: 'AI Hackathon Participant',
-    organization: 'BuildAI Collective',
-    type: 'Hackathon',
-    location: 'Mumbai, India',
-    deadline: '2026-09-22',
-    matchScore: 79,
-    skills: ['Python', 'Presentation', 'Design Thinking'],
-    matchText: 'Your project-driven profile is ideal for a fast-paced AI innovation challenge.',
-  },
-  {
-    id: 'opp-005',
-    title: 'Junior Data Strategist',
-    organization: 'ScaleBridge Ventures',
-    type: 'Job',
-    location: 'Remote',
-    deadline: '2026-10-20',
-    matchScore: 90,
-    skills: ['Market Research', 'SQL', 'Cross-functional Planning'],
-    matchText: 'Your combination of analytics and product insight matches this strategic remote role.',
-  },
-]
-
-const typeOptions = ['All', 'Job', 'Internship', 'Scholarship', 'Hackathon']
-const locationOptions = ['All', 'Remote', 'Mumbai, India', 'Bengaluru, India', 'Online']
-const sortOptions = [
-  { value: 'score', label: 'Match Score' },
-  { value: 'deadline', label: 'Deadline' },
-]
+const matchFilterOptions = ['Any', '75+%', '85+%', '90+%']
+const deadlineFilterOptions = ['All', 'Next 7 days', 'Next 14 days', 'Next 30 days', 'Later']
 
 export default function Opportunities() {
   const [query, setQuery] = useState('')
   const [selectedType, setSelectedType] = useState('All')
   const [selectedLocation, setSelectedLocation] = useState('All')
   const [sortBy, setSortBy] = useState('score')
-  const [savedItems, setSavedItems] = useState([])
+  const [filterMatch, setFilterMatch] = useState('Any')
+  const [filterDeadline, setFilterDeadline] = useState('All')
+  const [savedItems, setSavedItems] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('cp_saved_opps') || '[]')
+    } catch (e) {
+      return []
+    }
+  })
   const [selectedDetailId, setSelectedDetailId] = useState(null)
 
+  const userContext = useMemo(() => getUserOpportunityContext(), [])
+  const matchedOpportunities = useMemo(() => opportunities.map((item) => matchOpportunity(item, userContext)), [userContext])
+
   const filteredList = useMemo(() => {
-    return opportunities
+    const now = new Date()
+
+    return matchedOpportunities
       .filter((item) => {
-        const matchesQuery = [item.title, item.organization, item.type, item.location, item.matchText]
+        const matchesQuery = [item.title, item.organization, item.type, item.location, item.matchText, item.computedMatch.why]
           .join(' ')
           .toLowerCase()
           .includes(query.toLowerCase())
         const matchesType = selectedType === 'All' || item.type === selectedType
         const matchesLocation = selectedLocation === 'All' || item.location === selectedLocation
-        return matchesQuery && matchesType && matchesLocation
+        if (!matchesQuery || !matchesType || !matchesLocation) return false
+
+        if (filterMatch !== 'Any') {
+          const threshold = Number(filterMatch.replace(/[^0-9]/g, ''))
+          if (item.computedMatch.overall < threshold) return false
+        }
+
+        if (filterDeadline !== 'All') {
+          const deadlineDate = new Date(item.deadline)
+          const daysUntil = (deadlineDate - now) / (1000 * 60 * 60 * 24)
+          if (filterDeadline === 'Next 7 days' && daysUntil > 7) return false
+          if (filterDeadline === 'Next 14 days' && (daysUntil < 0 || daysUntil > 14)) return false
+          if (filterDeadline === 'Next 30 days' && (daysUntil < 0 || daysUntil > 30)) return false
+          if (filterDeadline === 'Later' && daysUntil <= 30) return false
+        }
+
+        return true
       })
       .sort((a, b) => {
         if (sortBy === 'deadline') {
           return new Date(a.deadline) - new Date(b.deadline)
         }
-        return b.matchScore - a.matchScore
+        return b.computedMatch.overall - a.computedMatch.overall
       })
-  }, [query, selectedType, selectedLocation, sortBy])
+  }, [matchedOpportunities, query, selectedType, selectedLocation, sortBy, filterMatch, filterDeadline])
 
   const navigate = useNavigate()
 
   const toggleSave = (id) => {
-    setSavedItems((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
-    )
+    setSavedItems((current) => {
+      const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+      try { localStorage.setItem('cp_saved_opps', JSON.stringify(next)) } catch (e) {}
+      return next
+    })
   }
 
   return (
@@ -185,17 +156,43 @@ export default function Opportunities() {
                   Showing <span className="font-semibold text-slate-900">{filteredList.length}</span> opportunities
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-slate-700">Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value)}
-                  className="rounded-xl border border-lavender-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-soft"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-slate-700">Sort by</label>
+                  <select
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value)}
+                    className="rounded-xl border border-lavender-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-soft"
+                  >
+                    {sortOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-slate-700">Match</label>
+                  <select
+                    value={filterMatch}
+                    onChange={(event) => setFilterMatch(event.target.value)}
+                    className="rounded-xl border border-lavender-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-soft"
+                  >
+                    {matchFilterOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-slate-700">Deadline</label>
+                  <select
+                    value={filterDeadline}
+                    onChange={(event) => setFilterDeadline(event.target.value)}
+                    className="rounded-xl border border-lavender-200 bg-white px-4 py-2.5 text-sm text-slate-800 outline-none transition-all duration-200 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 shadow-soft"
+                  >
+                    {deadlineFilterOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -220,6 +217,28 @@ export default function Opportunities() {
                           {item.skills.map((skill) => (
                             <Badge key={skill} variant="secondary" className="text-sm">{skill}</Badge>
                           ))}
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <div className="rounded-3xl bg-white border border-lavender-100 p-3">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Matching skills</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {item.computedMatch.matchingSkills.length ? item.computedMatch.matchingSkills.map((skill) => (
+                                <Badge key={`match-${skill}`} variant="success" className="text-sm">{skill}</Badge>
+                              )) : <span className="text-sm text-slate-500">None yet</span>}
+                            </div>
+                          </div>
+                          <div className="rounded-3xl bg-white border border-lavender-100 p-3">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Missing skills</p>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {item.computedMatch.missingSkills.length ? item.computedMatch.missingSkills.map((skill) => (
+                                <Badge key={`miss-${skill}`} variant="warning" className="text-sm">{skill}</Badge>
+                              )) : <span className="text-sm text-slate-500">Good fit</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="rounded-3xl bg-lavender-50 border border-lavender-100 p-4">
+                          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Why this matches you</p>
+                          <p className="mt-2 text-sm text-slate-600">{item.computedMatch.why}</p>
                         </div>
                       </div>
 

@@ -12,6 +12,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Button, Card, useToast } from '../../components/ui'
+import { analyzeCV } from '../../services/cvAnalyzer'
 
 const ACCEPTED_TYPES = {
   'application/pdf': '.pdf',
@@ -99,20 +100,31 @@ export default function UploadCV() {
       return
     }
     setState('analyzing')
-    setProgress(0)
+    setProgress(4)
 
-    // Simulate a smooth progress bar over ~3 seconds
-    let current = 0
+    // start visual progress simulation
+    let current = 4
     const interval = setInterval(() => {
-      current += Math.random() * 12 + 3
-      if (current >= 100) {
-        current = 100
-        clearInterval(interval)
-        setProgress(100)
-        setTimeout(() => setState('complete'), 400)
-      }
-      setProgress(Math.min(Math.round(current), 100))
-    }, 200)
+      current += Math.random() * 10 + 2
+      setProgress(Math.min(Math.round(current), 98))
+    }, 300)
+
+    // run analyzer in background
+    analyzeCV(file).then((res) => {
+      try {
+        localStorage.setItem('cp_cv_analysis_result', JSON.stringify(res))
+        localStorage.setItem('cp_cv_analysis_status', 'Done')
+      } catch (e) {}
+      clearInterval(interval)
+      setProgress(100)
+      setTimeout(() => setState('complete'), 350)
+    }).catch((err) => {
+      clearInterval(interval)
+      setProgress(0)
+      setState('error')
+      setError('Analysis failed. Please try again.')
+      try { localStorage.setItem('cp_cv_analysis_status', 'Failed') } catch (e) {}
+    })
   }
 
   /* ── Helpers ── */

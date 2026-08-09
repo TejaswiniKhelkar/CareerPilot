@@ -6,6 +6,14 @@ import UploadCV from '../pages/UploadCV'
 import AnalysisResults from '../pages/AnalysisResults'
 import Opportunities from '../pages/Opportunities'
 import OpportunityDetails from '../pages/Opportunities/OpportunityDetails'
+import SignIn from '../pages/Auth/SignIn'
+import SignUp from '../pages/Auth/SignUp'
+import Onboarding from '../pages/Onboarding/Onboarding'
+import Dashboard from '../pages/Dashboard/Dashboard'
+import CareerRoadmap from '../pages/CareerRoadmap/CareerRoadmap'
+import ForgotPassword from '../pages/Auth/ForgotPassword'
+import Profile from '../pages/Profile/Profile'
+import Saved from '../pages/Saved/Saved'
 import ComingSoon from '../pages/ComingSoon'
 
 const router = createBrowserRouter([
@@ -21,6 +29,26 @@ const router = createBrowserRouter([
         element: <UploadCV />,
       },
       {
+        path: '/signin',
+        element: <SignIn />,
+      },
+      {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
+      },
+      {
+        path: '/signup',
+        element: <SignUp />,
+      },
+      {
+        path: '/onboarding',
+        element: <Onboarding />,
+      },
+      {
+        path: '/dashboard',
+        element: <Dashboard />,
+      },
+      {
         path: '/analysis-results',
         element: <AnalysisResults />,
       },
@@ -31,6 +59,18 @@ const router = createBrowserRouter([
       {
         path: '/opportunities/:id',
         element: <OpportunityDetails />,
+      },
+      {
+        path: '/profile',
+        element: <Profile />,
+      },
+      {
+        path: '/saved',
+        element: <Saved />,
+      },
+      {
+        path: '/career-roadmap',
+        element: <CareerRoadmap />,
       },
       {
         path: '/career-roadmap',

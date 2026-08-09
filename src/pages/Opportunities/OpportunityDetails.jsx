@@ -9,6 +9,15 @@ export default function OpportunityDetails() {
   const { id } = useParams()
   const opportunity = opportunities.find((item) => item.id === id)
 
+  React.useEffect(() => {
+    if (!opportunity) return
+    try {
+      const raw = JSON.parse(localStorage.getItem('cp_recently_viewed') || '[]')
+      const next = [opportunity.id, ...raw.filter((x) => x !== opportunity.id)].slice(0, 10)
+      localStorage.setItem('cp_recently_viewed', JSON.stringify(next))
+    } catch (e) {}
+  }, [opportunity])
+
   if (!opportunity) {
     return (
       <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-12 px-4 sm:px-6">

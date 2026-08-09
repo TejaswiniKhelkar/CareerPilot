@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Sparkles, ChevronDown, Globe } from 'lucide-react'
 import { Button, useToast } from '../ui'
+import { useAuth } from '../../context'
 
 const navLinks = [
   { label: 'Home', path: '/' },
@@ -24,6 +25,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const langRef = useRef(null)
   const toast = useToast()
+  const { user, signOut } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -104,7 +106,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop: Language Selector + CTA */}
-        <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
           {/* Language Selector */}
           <div className="relative" ref={langRef}>
             <button
@@ -155,8 +157,22 @@ export default function Navbar() {
             </div>
           </div>
 
-          <Button variant="ghost" size="sm" onClick={() => navigate('/signin')}>Sign In</Button>
-          <Button variant="primary" size="sm" onClick={() => navigate('/upload')}>Get Started</Button>
+          {!user ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/signin')}>Sign In</Button>
+              <Button variant="primary" size="sm" onClick={() => navigate('/signup')}>Get Started</Button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+              <button
+                onClick={() => { signOut(); toast.info('Signed out'); navigate('/') }}
+                className="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-violet-700 hover:bg-lavender-50 transition-all duration-200"
+              >
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Mobile Hamburger */}
@@ -225,8 +241,17 @@ export default function Navbar() {
           </div>
 
           <div className="pt-3 border-t border-lavender-100 flex flex-col gap-2">
-            <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/signin')}>Sign In</Button>
-            <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/upload')}>Get Started</Button>
+            {!user ? (
+              <>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/signin')}>Sign In</Button>
+                <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/signup')}>Get Started</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+                <Button variant="primary" size="sm" className="w-full" onClick={() => { signOut(); toast.info('Signed out'); navigate('/') }}>Sign Out</Button>
+              </>
+            )}
           </div>
         </div>
       </div>

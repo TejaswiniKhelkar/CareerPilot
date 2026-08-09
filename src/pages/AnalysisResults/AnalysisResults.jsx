@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -11,80 +11,31 @@ import {
   CalendarDays,
   TrendingUp,
 } from 'lucide-react'
-import { Button, Card } from '../../components/ui'
+import { Button, Card, Loading } from '../../components/ui'
 
-const profile = {
-  name: 'Ayesha Sharma',
-  title: 'Product Analyst',
-  location: 'Mumbai, India',
-  completion: 92,
-  education: [
-    {
-      title: 'MBA in Business Analytics',
-      institution: 'IIM Bangalore',
-      date: '2024',
-      details: 'Graduated with honors. Capstone focused on market segmentation and AI-driven hiring models.',
-    },
-    {
-      title: 'B.Tech in Computer Science',
-      institution: 'IIT Bombay',
-      date: '2021',
-      details: 'Specialized in data systems and human-centered design.',
-    },
-  ],
-  skills: [
-    'SQL',
-    'Python',
-    'Tableau',
-    'Data Visualization',
-    'Product Strategy',
-    'Stakeholder Communication',
-    'A/B Testing',
-  ],
-  projects: [
-    {
-      name: 'Campus Placement Optimizer',
-      summary: 'Built a dashboard to prioritize candidate outreach and improve placement conversion by 18%.',
-    },
-    {
-      name: 'SkillScope Dashboard',
-      summary: 'Designed an internal tool for skill gap analysis across student cohorts.',
-    },
-    {
-      name: 'Resume Rewrite Engine',
-      summary: 'Led an automation prototype to standardize resume highlights for product roles.',
-    },
-  ],
-  experience: [
-    {
-      title: 'Product Analyst Intern',
-      company: 'VentureLeap Labs',
-      period: 'Jan 2024 - Jun 2024',
-      description: 'Analyzed user adoption metrics, created weekly dashboards, and supported GTM readiness for two product pilots.',
-    },
-    {
-      title: 'Business Analyst',
-      company: 'FutureWave Consulting',
-      period: 'Jul 2021 - Dec 2023',
-      description: 'Delivered market research insights and helped launch three B2B analytics products.',
-    },
-  ],
-  strengths: [
-    'Data-driven decision making',
-    'Clear cross-team communication',
-    'Product storytelling',
-    'Strong stakeholder influence',
-  ],
-  improvements: [
-    'Add measurable outcomes for key achievements',
-    'Highlight leadership in cross-functional projects',
-    'Streamline technical skills into focused categories',
-    'Tailor the resume summary for product analytics roles',
-  ],
-}
+const SAMPLE = null
 
 export default function AnalysisResults() {
   const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState(null)
+
+  useEffect(() => {
+    setLoading(true)
+    try {
+      const raw = localStorage.getItem('cp_cv_analysis_result')
+      if (raw) {
+        setResult(JSON.parse(raw))
+      } else {
+        setResult(null)
+      }
+    } catch (e) {
+      setError('Failed to load analysis result')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
   return (
     <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-10 sm:py-14">
@@ -103,10 +54,10 @@ export default function AnalysisResults() {
                     CV Analysis Report
                   </p>
                   <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 mb-2">
-                    {profile.name}
+                    {result?.name || 'Your CV Analysis'}
                   </h1>
                   <p className="text-sm sm:text-base text-slate-500 max-w-2xl">
-                    {profile.title} · {profile.location}
+                    {result?.role || ''} {result?.location ? `· ${result.location}` : ''}
                   </p>
                 </div>
 
@@ -117,7 +68,7 @@ export default function AnalysisResults() {
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Profile Score</p>
-                      <p className="text-xl font-semibold text-slate-900">{profile.completion}%</p>
+                      <p className="text-xl font-semibold text-slate-900">{result?.score ?? '—'}%</p>
                     </div>
                   </div>
                   <Button size="lg" iconRight={ArrowRight} onClick={() => navigate('/opportunities')}>
@@ -133,20 +84,20 @@ export default function AnalysisResults() {
                   <GraduationCap className="w-5 h-5 text-violet-600" />
                   <h2 className="text-lg font-semibold text-slate-900">Education</h2>
                 </div>
-                <div className="space-y-5">
-                  {profile.education.map((item) => (
-                    <div key={item.title} className="space-y-2">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="font-semibold text-slate-900">{item.title}</p>
-                          <p className="text-sm text-slate-500">{item.institution}</p>
+                  <div className="space-y-5">
+                    {(result?.education?.length ? result.education : []).map((item, idx) => (
+                      <div key={idx} className="space-y-2">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="font-semibold text-slate-900">{item}</p>
+                            {/* institution/details may be embedded in string */}
+                          </div>
                         </div>
-                        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-violet-500">{item.date}</span>
+                        {/* Details not structured in mock; show raw line */}
                       </div>
-                      <p className="text-sm text-slate-500">{item.details}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                    {!result?.education?.length && <p className="text-sm text-slate-500">No formal education detected.</p>}
+                  </div>
               </Card>
 
               <Card className="p-6">
@@ -155,11 +106,12 @@ export default function AnalysisResults() {
                   <h2 className="text-lg font-semibold text-slate-900">Top Skills</h2>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {profile.skills.map((skill) => (
+                  {(result?.skills||[]).map((skill) => (
                     <span key={skill} className="rounded-2xl border border-lavender-200 bg-lavender-50 px-4 py-2 text-sm font-medium text-slate-700">
                       {skill}
                     </span>
                   ))}
+                  {!(result?.skills?.length) && <p className="text-sm text-slate-500">No skills detected.</p>}
                 </div>
               </Card>
             </section>
@@ -170,15 +122,14 @@ export default function AnalysisResults() {
                 <h2 className="text-lg font-semibold text-slate-900">Projects</h2>
               </div>
               <div className="space-y-4">
-                {profile.projects.map((project) => (
-                  <div key={project.name} className="rounded-3xl border border-lavender-100 bg-lavender-50 p-5">
+                {(result?.projects||[]).length ? (result.projects.map((project, i) => (
+                  <div key={i} className="rounded-3xl border border-lavender-100 bg-lavender-50 p-5">
                     <div className="flex items-center justify-between gap-4">
-                      <p className="text-base font-semibold text-slate-900">{project.name}</p>
-                      <span className="text-xs uppercase tracking-[0.2em] text-violet-500">Featured</span>
+                      <p className="text-base font-semibold text-slate-900">{project.name || project}</p>
                     </div>
-                    <p className="mt-2 text-sm text-slate-500">{project.summary}</p>
+                    {project.summary && <p className="mt-2 text-sm text-slate-500">{project.summary}</p>}
                   </div>
-                ))}
+                ))) : <p className="text-sm text-slate-500">No projects detected.</p>}
               </div>
             </Card>
 
@@ -188,18 +139,19 @@ export default function AnalysisResults() {
                 <h2 className="text-lg font-semibold text-slate-900">Experience</h2>
               </div>
               <div className="space-y-5">
-                {profile.experience.map((item) => (
-                  <div key={item.title} className="space-y-2">
+                {(result?.experience||[]).length ? (result.experience.map((item, i) => (
+                  <div key={i} className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-slate-900">{item.title}</p>
-                        <p className="text-sm text-slate-500">{item.company}</p>
+                        <p className="font-semibold text-slate-900">{item.title || item}</p>
+                        {item.company && <p className="text-sm text-slate-500">{item.company}</p>}
                       </div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{item.period}</p>
+                      {item.period && <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{item.period}</p>}
                     </div>
-                    <p className="text-sm text-slate-500">{item.description}</p>
+                    {item.description && <p className="text-sm text-slate-500">{item.description}</p>}
+                    {!item.description && typeof item === 'string' && <p className="text-sm text-slate-500">{item}</p>}
                   </div>
-                ))}
+                ))) : <p className="text-sm text-slate-500">No experience detected.</p>}
               </div>
             </Card>
           </section>
@@ -213,12 +165,13 @@ export default function AnalysisResults() {
               <div className="space-y-4">
                 <div className="rounded-3xl border border-lavender-100 bg-white p-4">
                   <p className="text-sm text-slate-500">Resume strength</p>
-                  <p className="mt-2 text-2xl font-bold text-slate-900">92%</p>
+                  <p className="mt-2 text-2xl font-bold text-slate-900">{result?.score ?? '—'}%</p>
                 </div>
                 <div className="rounded-3xl border border-lavender-100 bg-white p-4">
                   <p className="text-sm text-slate-500">Recommended focus</p>
-                  <p className="mt-2 text-lg font-semibold text-slate-900">Product analytics roles</p>
+                  <p className="mt-2 text-lg font-semibold text-slate-900">{(result?.interests&&result.interests[0])|| 'General opportunities'}</p>
                 </div>
+                {loading && <Loading />}
               </div>
             </Card>
 
@@ -228,11 +181,12 @@ export default function AnalysisResults() {
                 <h2 className="text-lg font-semibold text-slate-900">Detected Strengths</h2>
               </div>
               <div className="grid gap-3">
-                {profile.strengths.map((item) => (
+                {(result?.strengths||[]).map((item) => (
                   <div key={item} className="rounded-3xl border border-lavender-100 bg-violet-50 p-4 text-sm font-medium text-slate-700">
                     {item}
                   </div>
                 ))}
+                {!result?.strengths?.length && <div className="text-sm text-slate-500">No clear strengths detected.</div>}
               </div>
             </Card>
 
@@ -242,12 +196,13 @@ export default function AnalysisResults() {
                 <h2 className="text-lg font-semibold text-slate-900">Suggested Improvements</h2>
               </div>
               <ul className="space-y-3">
-                {profile.improvements.map((item) => (
-                  <li key={item} className="flex items-start gap-3 rounded-3xl border border-lavender-100 bg-white p-4 text-sm text-slate-600">
+                {(result?.suggestions||[]).map((item, i) => (
+                  <li key={i} className="flex items-start gap-3 rounded-3xl border border-lavender-100 bg-white p-4 text-sm text-slate-600">
                     <span className="mt-1 text-violet-600"><ArrowRight className="w-3.5 h-3.5" /></span>
                     <span>{item}</span>
                   </li>
                 ))}
+                {!result?.suggestions?.length && <li className="text-sm text-slate-500">No suggestions available.</li>}
               </ul>
             </Card>
           </aside>
