@@ -1,0 +1,205 @@
+@import "tailwindcss";
+
+/* ================================================================
+   CareerPilot — Premium Lavender Design System
+   ================================================================ */
+
+@theme {
+  /* ── Lavender Palette ── */
+  --color-lavender-50:  #FAF5FF;
+  --color-lavender-100: #F3E8FF;
+  --color-lavender-200: #E9D5FF;
+  --color-lavender-300: #D8B4FE;
+  --color-lavender-400: #C084FC;
+  --color-lavender-500: #A855F7;
+  --color-lavender-600: #9333EA;
+  --color-lavender-700: #7E22CE;
+  --color-lavender-800: #6B21A8;
+  --color-lavender-900: #581C87;
+
+  /* ── Violet Accents ── */
+  --color-violet-50:  #F5F3FF;
+  --color-violet-100: #EDE9FE;
+  --color-violet-200: #DDD6FE;
+  --color-violet-300: #C4B5FD;
+  --color-violet-400: #A78BFA;
+  --color-violet-500: #8B5CF6;
+  --color-violet-600: #7C3AED;
+  --color-violet-700: #6D28D9;
+  --color-violet-800: #5B21B6;
+  --color-violet-900: #4C1D95;
+
+  /* ── Neutral Slate (warm-tinted) ── */
+  --color-slate-50:  #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+
+  /* ── Semantic Colors ── */
+  --color-primary:   #8B5CF6;
+  --color-primary-light: #A78BFA;
+  --color-primary-dark:  #7C3AED;
+  --color-secondary: #C084FC;
+  --color-accent:    #E9D5FF;
+  --color-surface:   #FFFFFF;
+  --color-surface-elevated: #FAF5FF;
+  --color-background: #F5F0FF;
+  --color-muted:     #F1F5F9;
+  --color-success:   #10B981;
+  --color-warning:   #F59E0B;
+  --color-error:     #EF4444;
+  --color-info:      #6366F1;
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+
+  /* ── Shadows ── */
+  --shadow-soft: 0 2px 15px -3px rgba(139, 92, 246, 0.08), 0 4px 6px -4px rgba(139, 92, 246, 0.04);
+  --shadow-card: 0 4px 25px -5px rgba(139, 92, 246, 0.10), 0 8px 10px -6px rgba(139, 92, 246, 0.06);
+  --shadow-elevated: 0 10px 40px -10px rgba(139, 92, 246, 0.15), 0 20px 25px -5px rgba(139, 92, 246, 0.08);
+  --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.25);
+
+  /* ── Border Radius ── */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+/* ================================================================
+   Base Styles
+   ================================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-lavender-300) transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-slate-800);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-slate-900);
+}
+
+/* ================================================================
+   Utility Classes
+   ================================================================ */
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-violet-600), var(--color-lavender-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass morphism surface */
+.glass {
+  background: rgba(255, 255, 255, 0.70);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(233, 213, 255, 0.35);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid rgba(233, 213, 255, 0.50);
+}
+
+/* Subtle background mesh (for page backgrounds) */
+.bg-mesh {
+  background-image:
+    radial-gradient(at 20% 20%, rgba(167, 139, 250, 0.12) 0px, transparent 50%),
+    radial-gradient(at 80% 10%, rgba(192, 132, 252, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 80%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+}
+
+/* Shimmer loading animation */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-lavender-100) 0%,
+    var(--color-lavender-50) 50%,
+    var(--color-lavender-100) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fade-in-up animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+/* Pulse glow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.3); }
+  50%      { box-shadow: 0 0 20px 4px rgba(139, 92, 246, 0.15); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger children animation helper */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.10s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.30s; }
