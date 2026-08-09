@@ -1,27 +1,37 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card } from '../../components/ui'
+import { Button, Badge, Card } from '../../components/ui'
 import { opportunities } from '../../data/opportunities'
+import { getUserOpportunityContext, matchOpportunity } from '../../services/opportunityMatcher'
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const profile = JSON.parse(localStorage.getItem('cp_profile') || '{}')
+  const analysis = JSON.parse(localStorage.getItem('cp_cv_analysis_result') || 'null') || null
   const saved = JSON.parse(localStorage.getItem('cp_saved_opps') || '[]')
   const recently = JSON.parse(localStorage.getItem('cp_recently_viewed') || '[]')
 
-  const recommended = opportunities.slice().sort((a,b) => b.matchScore - a.matchScore).slice(0,3)
+  const userContext = useMemo(() => getUserOpportunityContext(), [])
+  const recommended = useMemo(() => {
+    return opportunities
+      .map((opp) => matchOpportunity(opp, userContext))
+      .sort((a, b) => b.computedMatch.overall - a.computedMatch.overall)
+      .slice(0, 3)
+  }, [userContext])
 
   // compute average match among recommended
-  const avgMatch = Math.round((recommended.reduce((s,i)=>s+i.matchScore,0) / (recommended.length||1)))
+  const avgMatch = Math.round((recommended.reduce((s, i) => s + (i.computedMatch?.overall || i.matchScore), 0) / (recommended.length || 1)))
 
-  const skillGaps = (() => {
-    const userSkills = new Set(profile.skills || [])
-    const needed = {}
-    opportunities.forEach((op) => {
-      (op.skills||[]).forEach((s) => { if (!userSkills.has(s)) needed[s] = (needed[s] || 0) + 1 })
-    })
-    return Object.entries(needed).sort((a,b)=>b[1]-a[1]).map(([skill,count])=>skill).slice(0,6)
-  })()
+  const skillGaps = analysis?.skillGaps?.length
+    ? analysis.skillGaps.slice(0, 6)
+    : (() => {
+      const userSkills = new Set(profile.skills || [])
+      const needed = {}
+      opportunities.forEach((op) => {
+        (op.skills||[]).forEach((s) => { if (!userSkills.has(s)) needed[s] = (needed[s] || 0) + 1 })
+      })
+      return Object.entries(needed).sort((a,b)=>b[1]-a[1]).map(([skill,count])=>skill).slice(0,6)
+    })()
 
   return (
     <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-10 sm:py-14">
@@ -43,11 +53,22 @@ export default function Dashboard() {
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <div className="rounded-3xl bg-lavender-50 p-4 border border-lavender-100">
                   <p className="text-xs text-slate-400">Profile completion</p>
-                  <p className="text-xl font-semibold">{Math.round((Object.keys(profile).length)?( (Object.values(profile).filter(Boolean).length) / Object.keys(profile).length * 100):0)}%</p>
+                  <p className="text-xl font-semibold">{Math.round((Object.keys(profile).length) ? ((Object.values(profile).filter(Boolean).length) / Object.keys(profile).length * 100) : 0)}%</p>
                 </div>
                 <div className="rounded-3xl bg-white p-4 border border-lavender-100">
                   <p className="text-xs text-slate-400">CV analysis</p>
-                  <p className="text-xl font-semibold">{localStorage.getItem('cp_cv_analysis_status') || 'Not analyzed'}</p>
+                  <p className="text-xl font-semibold">
+                    {analysis
+                      ? analysis.source === 'ai'
+                        ? 'AI backend'
+                        : 'Local fallback'
+                      : (localStorage.getItem('cp_cv_analysis_status') || 'Not analyzed')}
+                  </p>
+                  {analysis?.score != null && (
+                    <p className="text-xs text-slate-400 mt-1">
+                      Score: {analysis.score}%
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>

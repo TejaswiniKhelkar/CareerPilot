@@ -11,7 +11,7 @@ import {
   CalendarDays,
   TrendingUp,
 } from 'lucide-react'
-import { Button, Card, Loading } from '../../components/ui'
+import { Button, Card, Loading, EmptyState } from '../../components/ui'
 
 const SAMPLE = null
 
@@ -37,6 +37,36 @@ export default function AnalysisResults() {
     }
   }, [])
 
+  if (loading) {
+    return (
+      <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center bg-mesh">
+        <Loading />
+      </div>
+    )
+  }
+
+  if (!result) {
+    return (
+      <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-10 sm:py-14">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <div className="absolute -top-24 right-0 w-[420px] h-[420px] bg-violet-300/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-4 w-[320px] h-[320px] bg-lavender-300/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="rounded-[2rem] bg-white/95 border border-lavender-100 shadow-card p-10 text-center">
+            <h1 className="text-3xl font-heading font-bold text-slate-900 mb-4">No analysis available yet</h1>
+            <p className="text-sm text-slate-500 mb-6">Upload your CV to generate a personalized career analysis report.</p>
+            <div className="flex justify-center gap-3">
+              <Button size="lg" onClick={() => navigate('/upload')}>Upload CV</Button>
+              <Button variant="secondary" size="lg" onClick={() => navigate('/dashboard')}>Go to dashboard</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-10 sm:py-14">
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -59,6 +89,11 @@ export default function AnalysisResults() {
                   <p className="text-sm sm:text-base text-slate-500 max-w-2xl">
                     {result?.role || ''} {result?.location ? `· ${result.location}` : ''}
                   </p>
+                  {result?.source && (
+                    <p className="text-xs text-slate-400 mt-2">
+                      {result.source === 'ai' ? 'Secure backend AI analysis' : 'Local fallback analysis'}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
@@ -187,6 +222,36 @@ export default function AnalysisResults() {
                   </div>
                 ))}
                 {!result?.strengths?.length && <div className="text-sm text-slate-500">No clear strengths detected.</div>}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <Sparkles className="w-5 h-5 text-violet-600" />
+                <h2 className="text-lg font-semibold text-slate-900">Suggested Roles</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(result?.suggestedRoles||[]).map((role) => (
+                  <span key={role} className="rounded-full border border-lavender-200 bg-lavender-50 px-3 py-2 text-sm text-slate-700">
+                    {role}
+                  </span>
+                ))}
+                {!result?.suggestedRoles?.length && <p className="text-sm text-slate-500">No suggested roles available.</p>}
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-5">
+                <CalendarDays className="w-5 h-5 text-violet-600" />
+                <h2 className="text-lg font-semibold text-slate-900">Skill Gaps</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {(result?.skillGaps||[]).map((gap) => (
+                  <span key={gap} className="rounded-full border border-lavender-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                    {gap}
+                  </span>
+                ))}
+                {!result?.skillGaps?.length && <p className="text-sm text-slate-500">No gaps detected. Great work!</p>}
               </div>
             </Card>
 

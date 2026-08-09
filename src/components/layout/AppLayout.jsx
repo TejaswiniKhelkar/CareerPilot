@@ -1,33 +1,36 @@
 import React from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import Navbar from './Navbar'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
 import { ToastProvider } from '../ui'
-import { AuthProvider, useAuth } from '../../context'
+import { useAuth } from '../../context'
 
 export default function AppLayout() {
-  return (
-    <AuthProvider>
-      <ToastProvider>
-        <div className="min-h-screen flex flex-col bg-mesh">
-          <Navbar />
+  const location = useLocation()
+  const { user } = useAuth()
+  const hideSidebarPaths = ['/signin', '/signup', '/forgot-password', '/onboarding', '/']
+  const showSidebar = user && !hideSidebarPaths.includes(location.pathname)
 
-          {/* Main content area — padded below the fixed navbar */}
-          <main className="flex-1 pt-24">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <div className="lg:flex lg:items-start lg:gap-6">
-                <Sidebar />
-                <div className="flex-1">
-                  <Outlet />
-                </div>
+  return (
+    <ToastProvider>
+      <div className="min-h-screen flex flex-col bg-mesh">
+        <Navbar />
+
+        {/* Main content area — padded below the fixed navbar */}
+        <main className="flex-1 pt-24">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="lg:flex lg:items-start lg:gap-6">
+              {showSidebar && <Sidebar />}
+              <div className={showSidebar ? 'flex-1' : 'w-full'}>
+                <Outlet />
               </div>
             </div>
-          </main>
+          </div>
+        </main>
 
-          <Footer />
-        </div>
-      </ToastProvider>
-    </AuthProvider>
+        <Footer />
+      </div>
+    </ToastProvider>
   )
 }

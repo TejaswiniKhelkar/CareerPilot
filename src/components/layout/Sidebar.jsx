@@ -2,21 +2,23 @@ import React, { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Home, User, FileText, Briefcase, Bookmark, Map, Settings, LogOut } from 'lucide-react'
 import { useAuth } from '../../context'
-
-const items = [
-  { label: 'Dashboard', path: '/dashboard', icon: Home },
-  { label: 'My Profile', path: '/profile', icon: User },
-  { label: 'CV Analysis', path: '/analysis-results', icon: FileText },
-  { label: 'Opportunities', path: '/opportunities', icon: Briefcase },
-  { label: 'Saved', path: '/saved', icon: Bookmark },
-  { label: 'Career Roadmap', path: '/career-roadmap', icon: Map },
-  { label: 'Settings', path: '/settings', icon: Settings },
-]
+import { useLanguage } from '../../i18n'
 
 export default function Sidebar() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
+  const { t } = useLanguage()
+
+  const items = [
+    { label: t('sidebar.dashboard'), path: '/dashboard', icon: Home },
+    { label: t('sidebar.profile'), path: '/profile', icon: User },
+    { label: t('sidebar.analysis'), path: '/analysis-results', icon: FileText },
+    { label: t('sidebar.opportunities'), path: '/opportunities', icon: Briefcase },
+    { label: t('sidebar.saved'), path: '/saved', icon: Bookmark },
+    { label: t('sidebar.roadmap'), path: '/career-roadmap', icon: Map },
+    { label: t('sidebar.settings'), path: '/settings', icon: Settings },
+  ]
 
   return (
     <aside className="hidden lg:block w-64 pr-6">
@@ -51,7 +53,7 @@ export default function Sidebar() {
               className="w-full inline-flex items-center gap-2 justify-center px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-lavender-50"
             >
               <LogOut className="w-4 h-4" />
-              Logout
+              {t('sidebar.logout')}
             </button>
           </div>
         </div>

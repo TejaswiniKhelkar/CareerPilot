@@ -12,7 +12,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Button, Card, useToast } from '../../components/ui'
-import { analyzeCV } from '../../services/cvAnalyzer'
+import { analyzeCV, hasBackend } from '../../services/ai'
 
 const ACCEPTED_TYPES = {
   'application/pdf': '.pdf',
@@ -113,16 +113,20 @@ export default function UploadCV() {
     analyzeCV(file).then((res) => {
       try {
         localStorage.setItem('cp_cv_analysis_result', JSON.stringify(res))
-        localStorage.setItem('cp_cv_analysis_status', 'Done')
+        localStorage.setItem('cp_cv_analysis_status', res.source === 'ai' ? 'AI backend' : 'Local fallback')
       } catch (e) {}
       clearInterval(interval)
       setProgress(100)
-      setTimeout(() => setState('complete'), 350)
+      setTimeout(() => {
+        setState('complete')
+        toast.success('CV analysis complete!')
+      }, 350)
     }).catch((err) => {
       clearInterval(interval)
       setProgress(0)
       setState('error')
-      setError('Analysis failed. Please try again.')
+      setError(err?.message || 'Analysis failed. Please try again.')
+      toast.error(err?.message || 'Analysis failed. Please try again.')
       try { localStorage.setItem('cp_cv_analysis_status', 'Failed') } catch (e) {}
     })
   }
@@ -407,10 +411,15 @@ export default function UploadCV() {
           style={{ animationDelay: '0.25s' }}
         >
           <Shield className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-            Your CV is used only to personalize your career recommendations.
-            We never share your data with third parties.
-          </p>
+          <div>
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+              Your CV is used only to personalize your career recommendations.
+              We never share your data with third parties.
+            </p>
+            <p className="mt-2 text-xs text-slate-400">
+              {hasBackend ? 'Using secure backend AI analysis.' : 'No backend AI endpoint configured; using local fallback analysis.'}
+            </p>
+          </div>
         </div>
       </div>
     </div>

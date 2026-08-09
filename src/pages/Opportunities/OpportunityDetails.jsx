@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Shield, Sparkles, CalendarDays, MapPin, ClipboardList, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Shield, Sparkles, CalendarDays, ClipboardList, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { Button, Badge, Card } from '../../components/ui'
 import { opportunities } from '../../data/opportunities'
+import { getUserOpportunityContext, matchOpportunity } from '../../services/opportunityMatcher'
 
 export default function OpportunityDetails() {
   const navigate = useNavigate()
   const { id } = useParams()
+  const userContext = useMemo(() => getUserOpportunityContext(), [])
   const opportunity = opportunities.find((item) => item.id === id)
+  const matched = opportunity ? matchOpportunity(opportunity, userContext) : null
 
   React.useEffect(() => {
     if (!opportunity) return
@@ -62,7 +65,7 @@ export default function OpportunityDetails() {
           <div className="flex flex-col sm:items-end gap-4">
             <div className="rounded-3xl bg-violet-50 border border-violet-100 px-5 py-4 shadow-sm text-right">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Match score</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900">{opportunity.matchScore}%</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900">{matched?.computedMatch?.overall ?? opportunity.matchScore}%</p>
             </div>
             <Button size="lg" iconRight={ArrowRight} onClick={() => navigate('/career-roadmap')}>
               View Career Roadmap
@@ -77,6 +80,7 @@ export default function OpportunityDetails() {
                 <Badge variant="primary" className="capitalize">{opportunity.type}</Badge>
                 <Badge variant="secondary">{opportunity.location}</Badge>
                 <Badge variant="info">Deadline: {opportunity.deadline}</Badge>
+                <Badge variant="soft">Match: {matched?.computedMatch?.overall ?? opportunity.matchScore}%</Badge>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-lavender-100 bg-lavender-50 p-5">
@@ -140,9 +144,13 @@ export default function OpportunityDetails() {
                 <h2 className="text-lg font-semibold text-slate-900">Your matching skills</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                {opportunity.userSkills.map((skill) => (
-                  <Badge key={skill} variant="success" className="text-sm">{skill}</Badge>
-                ))}
+                {(matched?.computedMatch?.matchingSkills || []).length ? (
+                  matched.computedMatch.matchingSkills.map((skill) => (
+                    <Badge key={skill} variant="success" className="text-sm">{skill}</Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-slate-500">No matching skills detected yet.</span>
+                )}
               </div>
             </Card>
 
@@ -152,7 +160,7 @@ export default function OpportunityDetails() {
                 <h2 className="text-lg font-semibold text-slate-900">Skill gaps</h2>
               </div>
               <div className="flex flex-wrap gap-2">
-                {opportunity.missingSkills.map((skill) => (
+                {(matched?.computedMatch?.missingSkills || []).map((skill) => (
                   <Badge key={skill} variant="warning" className="text-sm">{skill}</Badge>
                 ))}
               </div>

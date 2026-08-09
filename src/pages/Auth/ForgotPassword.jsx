@@ -1,9 +1,17 @@
 import React, { useState } from 'react'
-import { Card, Button, Input } from '../../components/ui'
+import { Card, Button, Input, useToast } from '../../components/ui'
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('')
-  const submit = (e) => { e.preventDefault(); alert('If this were real, we would send a reset email to ' + email) }
+  const toast = useToast()
+  const submit = (e) => {
+    e.preventDefault()
+    if (!email) {
+      toast.error('Please enter your email address.')
+      return
+    }
+    toast.info(`If this were real, we'd send a reset message to ${email}.`)
+  }
   return (
     <div className="relative min-h-[calc(100vh-6rem)] bg-mesh py-12 px-4 sm:px-6">
       <div className="relative max-w-md mx-auto">

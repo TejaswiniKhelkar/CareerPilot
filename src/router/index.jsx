@@ -14,7 +14,9 @@ import CareerRoadmap from '../pages/CareerRoadmap/CareerRoadmap'
 import ForgotPassword from '../pages/Auth/ForgotPassword'
 import Profile from '../pages/Profile/Profile'
 import Saved from '../pages/Saved/Saved'
+import Settings from '../pages/Settings'
 import ComingSoon from '../pages/ComingSoon'
+import ProtectedRoute from '../components/layout/ProtectedRoute'
 
 const router = createBrowserRouter([
   {
@@ -26,7 +28,11 @@ const router = createBrowserRouter([
       },
       {
         path: '/upload',
-        element: <UploadCV />,
+        element: (
+          <ProtectedRoute>
+            <UploadCV />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/signin',
@@ -42,39 +48,75 @@ const router = createBrowserRouter([
       },
       {
         path: '/onboarding',
-        element: <Onboarding />,
+        element: (
+          <ProtectedRoute>
+            <Onboarding />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/dashboard',
-        element: <Dashboard />,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/analysis-results',
-        element: <AnalysisResults />,
+        element: (
+          <ProtectedRoute>
+            <AnalysisResults />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/opportunities',
-        element: <Opportunities />,
+        element: (
+          <ProtectedRoute>
+            <Opportunities />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/opportunities/:id',
-        element: <OpportunityDetails />,
+        element: (
+          <ProtectedRoute>
+            <OpportunityDetails />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/profile',
-        element: <Profile />,
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/saved',
-        element: <Saved />,
+        element: (
+          <ProtectedRoute>
+            <Saved />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/career-roadmap',
-        element: <CareerRoadmap />,
+        element: (
+          <ProtectedRoute>
+            <CareerRoadmap />
+          </ProtectedRoute>
+        ),
       },
       {
-        path: '/career-roadmap',
-        element: <ComingSoon />,
+        path: '/settings',
+        element: (
+          <ProtectedRoute>
+            <Settings />
+          </ProtectedRoute>
+        ),
       },
       // Placeholder routes for nav/footer links
       { path: '/features', element: <ComingSoon /> },
@@ -86,7 +128,6 @@ const router = createBrowserRouter([
       { path: '/help', element: <ComingSoon /> },
       { path: '/contact', element: <ComingSoon /> },
       { path: '/privacy', element: <ComingSoon /> },
-      { path: '/signin', element: <ComingSoon /> },
       // Catch-all for any unknown route
       { path: '*', element: <ComingSoon /> },
     ],

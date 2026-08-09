@@ -1,21 +1,35 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input } from '../../components/ui'
+import { Button, Card, Input, useToast } from '../../components/ui'
 import { useAuth } from '../../context'
 
 export default function SignIn() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('cp_remember')
+      if (stored) setEmail(stored)
+    } catch (e) {}
+  }, [])
+
   const submit = (e) => {
     e.preventDefault()
-    if (!email || !password) return alert('Please enter email and password')
+    if (!email || !password) {
+      toast.error('Please enter email and password.')
+      return
+    }
+
     signIn(email, email.split('@')[0])
     try { if (remember) localStorage.setItem('cp_remember', email) } catch (e) {}
-    navigate('/onboarding')
+
+    const profile = localStorage.getItem('cp_profile')
+    navigate(profile ? '/dashboard' : '/onboarding')
   }
 
   return (

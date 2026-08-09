@@ -3,29 +3,25 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X, Sparkles, ChevronDown, Globe } from 'lucide-react'
 import { Button, useToast } from '../ui'
 import { useAuth } from '../../context'
-
-const navLinks = [
-  { label: 'Home', path: '/' },
-  { label: 'Features', path: '/features' },
-  { label: 'About', path: '/about' },
-]
-
-const languages = [
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'hi', label: 'हिन्दी', flag: '🇮🇳' },
-  { code: 'mr', label: 'मराठी', flag: '🇮🇳' },
-]
+import { useLanguage } from '../../i18n'
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const [selectedLang, setSelectedLang] = useState(languages[0])
   const location = useLocation()
   const navigate = useNavigate()
   const langRef = useRef(null)
   const toast = useToast()
   const { user, signOut } = useAuth()
+  const { locale, setLocale, t, languages } = useLanguage()
+  const selectedLang = languages.find((lang) => lang.code === locale) || languages[0]
+
+  const navLinks = [
+    { label: t('nav.home'), path: '/' },
+    { label: t('nav.features'), path: '/features' },
+    { label: t('nav.about'), path: '/about' },
+  ]
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -50,7 +46,7 @@ export default function Navbar() {
   }, [])
 
   const handleLangSelect = (lang) => {
-    setSelectedLang(lang)
+    setLocale(lang.code)
     setLangOpen(false)
   }
 
@@ -159,17 +155,17 @@ export default function Navbar() {
 
           {!user ? (
             <>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/signin')}>Sign In</Button>
-              <Button variant="primary" size="sm" onClick={() => navigate('/signup')}>Get Started</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/signin')}>{t('buttons.signIn')}</Button>
+              <Button variant="primary" size="sm" onClick={() => navigate('/signup')}>{t('buttons.getStarted')}</Button>
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>{t('sidebar.dashboard')}</Button>
               <button
-                onClick={() => { signOut(); toast.info('Signed out'); navigate('/') }}
+                onClick={() => { signOut(); toast.info(t('messages.signedOut')); navigate('/') }}
                 className="px-3 py-2 rounded-xl text-sm font-medium text-slate-600 hover:text-violet-700 hover:bg-lavender-50 transition-all duration-200"
               >
-                Sign Out
+                {t('buttons.signOut')}
               </button>
             </div>
           )}
@@ -218,12 +214,12 @@ export default function Navbar() {
 
           {/* Mobile Language Selector */}
           <div className="pt-2 border-t border-lavender-100">
-            <p className="px-4 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">Language</p>
+            <p className="px-4 py-1.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">{t('settings.language')}</p>
             <div className="flex gap-1.5 px-3">
               {languages.map((lang) => (
                 <button
                   key={lang.code}
-                  onClick={() => setSelectedLang(lang)}
+                  onClick={() => handleLangSelect(lang)}
                   className={`
                     flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer
                     transition-all duration-150
@@ -243,13 +239,13 @@ export default function Navbar() {
           <div className="pt-3 border-t border-lavender-100 flex flex-col gap-2">
             {!user ? (
               <>
-                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/signin')}>Sign In</Button>
-                <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/signup')}>Get Started</Button>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/signin')}>{t('buttons.signIn')}</Button>
+                <Button variant="primary" size="sm" className="w-full" onClick={() => navigate('/signup')}>{t('buttons.getStarted')}</Button>
               </>
             ) : (
               <>
-                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/dashboard')}>Dashboard</Button>
-                <Button variant="primary" size="sm" className="w-full" onClick={() => { signOut(); toast.info('Signed out'); navigate('/') }}>Sign Out</Button>
+                <Button variant="ghost" size="sm" className="w-full" onClick={() => navigate('/dashboard')}>{t('sidebar.dashboard')}</Button>
+                <Button variant="primary" size="sm" className="w-full" onClick={() => { signOut(); toast.info(t('messages.signedOut')); navigate('/') }}>{t('buttons.signOut')}</Button>
               </>
             )}
           </div>

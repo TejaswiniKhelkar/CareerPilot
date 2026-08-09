@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Card, Input } from '../../components/ui'
+import { Button, Card, Input, useToast } from '../../components/ui'
 import { useAuth } from '../../context'
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { signUp } = useAuth()
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
@@ -12,7 +13,10 @@ export default function SignUp() {
 
   const submit = (e) => {
     e.preventDefault()
-    if (!email || !password) return alert('Please enter email and password')
+    if (!email || !password) {
+      toast.error('Please enter email and password.')
+      return
+    }
     signUp(email, name || email.split('@')[0])
     navigate('/onboarding')
   }
